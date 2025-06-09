@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.png" />
+  <title>Tic Tac Toe</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 2rem;
+    }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 5px;
+      margin-bottom: 1rem;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      font-size: 2rem;
+      background: white;
+      border: 3px solid #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .cell:hover {
+      background: #eef;
+    }
+    .cell.win {
+      background: #90ee90;
+      animation: blink 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes blink {
+      from { box-shadow: 0 0 5px 2px #4caf50; }
+      to { box-shadow: 0 0 10px 4px #4caf50; }
+    }
+    .scoreboard, .controls {
+      margin: 0.5rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe</h1>
+  <div class="scoreboard">
+    Skor X: <span id="scoreX">0</span> | Skor O: <span id="scoreO">0</span>
+  </div>
+  <div class="game-board" id="board"></div>
+  <div class="controls">
+    <button onclick="resetBoard()">Reset Game</button>
+    <button onclick="resetScore()">Reset Skor</button>
+  </div>
+  <script>
+    const board = document.getElementById("board");
+    let currentPlayer = "X";
+    let gameActive = true;
+    let boardState = ["", "", "", "", "", "", "", "", ""];
+    let scoreX = 0, scoreO = 0;
+
+    function createBoard() {
+      board.innerHTML = "";
+      boardState.forEach((cell, i) => {
+        const div = document.createElement("div");
+        div.classList.add("cell");
+        div.dataset.index = i;
+        div.textContent = cell;
+        div.addEventListener("click", handleMove);
+        board.appendChild(div);
+      });
+    }
+
+    function handleMove(e) {
+      const idx = e.target.dataset.index;
+      if (!gameActive || boardState[idx]) return;
+      boardState[idx] = currentPlayer;
+      createBoard();
+      checkWinner();
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+    }
+
+    function checkWinner() {
+      const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+      ];
+      for (let combo of wins) {
+        const [a,b,c] = combo;
+        if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+          gameActive = false;
+          document.querySelectorAll(".cell").forEach(cell => {
+            if ([a,b,c].includes(+cell.dataset.index)) {
+              cell.classList.add("win");
+            }
+          });
+          updateScore(boardState[a]);
+          return;
+        }
+      }
+    }
+
+    function updateScore(winner) {
+      if (winner === "X") scoreX++;
+      else if (winner === "O") scoreO++;
+      document.getElementById("scoreX").textContent = scoreX;
+      document.getElementById("scoreO").textContent = scoreO;
+    }
+
+    function resetBoard() {
+      boardState = ["", "", "", "", "", "", "", "", ""];
+      gameActive = true;
+      createBoard();
+    }
+
+    function resetScore() {
+      scoreX = 0;
+      scoreO = 0;
+      document.getElementById("scoreX").textContent = 0;
+      document.getElementById("scoreO").textContent = 0;
+    }
+
+    createBoard();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
